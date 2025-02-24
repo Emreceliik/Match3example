@@ -2,7 +2,8 @@
 
 This project is a Match-3 game developed in Unity. Similar to Candy Crush, this game allows players to match colorful tiles to earn points. The goal is to swap adjacent tiles to create matches of at least three of the same color.
 <p align="center">
-  <img src="https://github.com/Emreceliik/GJGcase/raw/main/Assets/Assets/Images/Telefon.png" alt="Project Image" />
+  <img src="https://github.com/Emreceliik/Match3example/blob/main/Assets/assets/Image/photo.png" alt="Project Image" />
+  
 </p>
 # Features
 
