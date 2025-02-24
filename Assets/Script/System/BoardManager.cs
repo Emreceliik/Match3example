@@ -5,18 +5,18 @@ using UnityEngine.UI;
 
 public class BoardManager : MonoBehaviour
 {
-    [Header("Board Ayarları")]
+    [Header("Board Settings")]
     public int width = 8;
     public int height = 8;
-    public GameObject[] piecePrefabs; // Farklı renk/visual için prefab dizisi
-    public Transform boardParent;     // Board için isteğe bağlı parent nesne
+    public GameObject[] piecePrefabs; // Array of prefabs for different colors/visuals
+    public Transform boardParent;     // Optional parent object for the board
 
-    [Header("Animasyon Ayarları")]
+    [Header("Animation Settings")]
     public float swapDuration = 0.3f;
     public float fallDuration = 0.5f;
     public float disappearDuration = 0.3f;
 
-    [Header("Oyun Değerleri")]
+    [Header("Game Values")]
     public int numColors = 6;
     public Text scoreText;
     public Text movesText;
@@ -38,7 +38,7 @@ public class BoardManager : MonoBehaviour
     void Update()
     {
         HandleInput();
-        // Board sabitken deadlock kontrolü: Eğer hamle yoksa board tamamen resetlensin.
+        // Check for deadlock when the board is stable: If no moves are possible, reset the board completely.
         if (!IsAnyPieceMoving() && needsResetCheck)
         {
             needsResetCheck = false;
@@ -49,7 +49,7 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-    #region Board Başlatma ve Parça Oluşturma
+    #region Board Initialization and Piece Creation
     void InitializeBoard()
     {
         for (int x = 0; x < width; x++)
@@ -69,7 +69,7 @@ public class BoardManager : MonoBehaviour
         Piece piece = newObj.GetComponent<Piece>();
         if (piece == null)
         {
-            Debug.LogError($"Index {randomColor}'daki prefab, Piece component'ine sahip değil!");
+            Debug.LogError($"Prefab at index {randomColor} does not have a Piece component!");
             Destroy(newObj);
             return;
         }
@@ -79,19 +79,19 @@ public class BoardManager : MonoBehaviour
         grid[x, y] = piece;
         if (!initializing)
         {
-            // Yeni taş yukarıdan spawn olup düşüş animasyonu uygulasın.
+            // New piece spawns from above and falls with an animation.
             newObj.transform.position = new Vector3(x, height + 1, 0);
             StartCoroutine(piece.MoveCoroutine(pos, fallDuration));
         }
     }
     #endregion
 
-    #region Girdi İşleme
+    #region Input Handling
     void HandleInput()
     {
         if (Application.isEditor)
         {
-            // Editor'de hem fare hem dokunmatik girdileri simüle et
+            // Simulate both mouse and touch inputs in the Editor
             HandlePCInput();
             HandleMobileInput();
         }
@@ -214,7 +214,7 @@ public class BoardManager : MonoBehaviour
     //             }
     //         }
     //     }
-
+    //
     //     if (Input.GetMouseButtonUp(0) && selectedPiece != null)
     //     {
     //         Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -242,7 +242,7 @@ public class BoardManager : MonoBehaviour
     // }
     #endregion
 
-    #region Parça Yönetimi
+    #region Piece Management
     Piece GetPieceAt(int x, int y)
     {
         if (x < 0 || x >= width || y < 0 || y >= height)
@@ -262,7 +262,7 @@ public class BoardManager : MonoBehaviour
         moves++;
         UpdateUI();
         StartCoroutine(SwapAndCheck(a, b));
-        needsResetCheck = true; // Swap sonrası deadlock kontrolü yapılacak.
+        needsResetCheck = true; // Check for deadlock after the swap.
     }
 
     IEnumerator SwapAndCheck(Piece a, Piece b)
@@ -288,7 +288,7 @@ public class BoardManager : MonoBehaviour
         }
         else
         {
-            // Eşleşme yoksa swap'ı geri al.
+            // If no matches are found, revert the swap.
             grid[ax, ay] = a;
             grid[bx, by] = b;
             a.SetPosition(ax, ay);
@@ -299,7 +299,7 @@ public class BoardManager : MonoBehaviour
     }
     #endregion
 
-    #region Eşleşme Tespiti ve İşlenmesi
+    #region Match Detection and Processing
     bool IsMatch(Piece a, Piece b, Piece c)
     {
         if (a == null || b == null || c == null) return false;
@@ -307,7 +307,7 @@ public class BoardManager : MonoBehaviour
         if (a.specialType != SpecialType.Rainbow) colors.Add(a.colorIndex);
         if (b.specialType != SpecialType.Rainbow) colors.Add(b.colorIndex);
         if (c.specialType != SpecialType.Rainbow) colors.Add(c.colorIndex);
-        if (colors.Count == 0) return true; // Tüm taşlar Rainbow ise
+        if (colors.Count == 0) return true; // If all pieces are Rainbow
         int first = colors[0];
         foreach (int col in colors)
         {
@@ -319,7 +319,7 @@ public class BoardManager : MonoBehaviour
     List<Piece> GetMatches()
     {
         List<Piece> matchingPieces = new List<Piece>();
-        // Yatay eşleşmeler
+        // Horizontal matches
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width - 2; x++)
@@ -335,7 +335,7 @@ public class BoardManager : MonoBehaviour
                 }
             }
         }
-        // Dikey eşleşmeler
+        // Vertical matches
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height - 2; y++)
@@ -356,7 +356,7 @@ public class BoardManager : MonoBehaviour
 
     IEnumerator ProcessMatches(List<Piece> matches)
     {
-        // Özel taş varsa, önce onun efektini tetikle
+        // If there’s a special piece, trigger its effect first
         List<Piece> normalPieces = new List<Piece>();
         foreach (Piece p in matches)
         {
@@ -372,7 +372,7 @@ public class BoardManager : MonoBehaviour
                 }
             }
         }
-        // Normal taşların yok olma animasyonu ve grid'den kaldırılması
+        // Disappearance animation and removal from grid for normal pieces
         foreach (Piece p in normalPieces)
         {
             if (p != null)
@@ -393,7 +393,7 @@ public class BoardManager : MonoBehaviour
     IEnumerator FillBoard()
     {
         bool needsRefill = false;
-        // Taşları aşağı kaydır
+        // Move pieces down
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -418,7 +418,7 @@ public class BoardManager : MonoBehaviour
         }
         yield return new WaitForSeconds(fallDuration);
 
-        // Eksik hücrelere yeni taş ekle
+        // Add new pieces to empty cells
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -444,14 +444,14 @@ public class BoardManager : MonoBehaviour
     }
     #endregion
 
-    #region Özel Efekt İşleme
+    #region Special Effect Processing
     public IEnumerator ProcessSpecialEffect(SpecialType type, int row, int col, int colorIndex)
     {
         List<Piece> piecesToClear = new List<Piece>();
         switch (type)
         {
             case SpecialType.Striped:
-                // Hem satır hem sütundaki taşları temizle.
+                // Clear both the row and column pieces.
                 for (int x = 0; x < width; x++)
                 {
                     Piece p = grid[x, col];
@@ -477,7 +477,7 @@ public class BoardManager : MonoBehaviour
                 }
                 break;
             case SpecialType.Rainbow:
-                // Rainbow efektinde, tetikleyicinin belirlediği renge sahip normal taşları (diğer Rainbow taşları hariç) topla.
+                // For the Rainbow effect, collect all normal pieces (excluding other Rainbow pieces) of the specified color.
                 for (int x = 0; x < width; x++)
                 {
                     for (int y = 0; y < height; y++)
@@ -489,12 +489,12 @@ public class BoardManager : MonoBehaviour
                 }
                 break;
         }
-        // Tetikleyici taş zaten board'dan kaldırıldıysa listeden çıkar.
+        // If the triggering piece has already been removed from the board, exclude it from the list.
         Piece trigger = GetPieceAt(row, col);
         if (trigger != null)
             piecesToClear.Remove(trigger);
 
-        // Zincirleme özel efektleri önlemek için, efekt kapsamındaki tüm taşların specialType'ını None yap.
+        // To prevent cascading special effects, set the specialType of all affected pieces to None.
         foreach (Piece p in piecesToClear)
         {
             if (p != null)
@@ -505,7 +505,7 @@ public class BoardManager : MonoBehaviour
         {
             if (type == SpecialType.Rainbow)
             {
-                // Rainbow efektinde ProcessMatches çağrılmadan direkt taşlar yok edilir.
+                // For the Rainbow effect, destroy pieces directly without calling ProcessMatches.
                 foreach (Piece p in piecesToClear)
                 {
                     if (p != null)
@@ -527,7 +527,7 @@ public class BoardManager : MonoBehaviour
     }
     #endregion
 
-    #region UI ve Yardımcı Metodlar
+    #region UI and Utility Methods
     void UpdateUI()
     {
         if (scoreText) scoreText.text = "Score: " + score;
@@ -548,8 +548,8 @@ public class BoardManager : MonoBehaviour
     }
     #endregion
 
-    #region Deadlock Tespiti ve Board Resetleme
-    // Hamle olup olmadığını kontrol eder.
+    #region Deadlock Detection and Board Reset
+    // Check if there are any possible moves.
     bool HasPossibleMoves()
     {
         for (int x = 0; x < width; x++)
@@ -587,10 +587,10 @@ public class BoardManager : MonoBehaviour
         return matchFound;
     }
 
-    // Deadlock tespit edildiğinde board'u tamamen temizleyip yeniden oluşturur.
+    // When a deadlock is detected, clear the board completely and recreate it.
     IEnumerator ResetBoard()
     {
-        // Tüm board'u temizle.
+        // Clear the entire board.
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -604,11 +604,11 @@ public class BoardManager : MonoBehaviour
         }
         yield return new WaitForSeconds(0.1f);
 
-        // Board'u yeniden başlat.
+        // Reinitialize the board.
         InitializeBoard();
         yield return new WaitForSeconds(fallDuration);
 
-        // Eğer hâlâ hamle yoksa tekrar resetle.
+        // If there are still no moves, reset again.
         if (!HasPossibleMoves())
         {
             StartCoroutine(ResetBoard());
