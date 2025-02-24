@@ -1,8 +1,8 @@
-Match3 Game
+#Match3 Game
 
 This project is a Match-3 game developed in Unity. Similar to Candy Crush, this game allows players to match colorful tiles to earn points. The goal is to swap adjacent tiles to create matches of at least three of the same color.
 
-Features
+#Features
 
 Tile Matching: Swap adjacent tiles to form a horizontal or vertical match of at least three identical tiles.
 
@@ -20,7 +20,7 @@ Move Limit: Players must achieve the best possible score within a set number of 
 
 Deadlock Detection: If no valid moves remain, the board automatically reshuffles to continue gameplay.
 
-How to Play
+#How to Play
 
 Swap two adjacent tiles to create a match of at least three of the same color.
 
