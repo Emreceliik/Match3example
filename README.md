@@ -5,6 +5,7 @@ This project is a Match-3 game developed in Unity. Similar to Candy Crush, this 
   <img src="https://github.com/Emreceliik/Match3example/blob/main/Assets/assets/Image/photo.png" alt="Project Image" />
   
 </p>
+
 # Features
 
 Tile Matching: Swap adjacent tiles to form a horizontal or vertical match of at least three identical tiles.
